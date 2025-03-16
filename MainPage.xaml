@@ -1,0 +1,157 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage 
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:model="clr-namespace:ExerciseTracker.Models"
+    xmlns:controls="clr-namespace:ExerciseTracker.Controls"
+    x:Class="ExerciseTracker.MainPage">
+
+    <Grid>
+        <!-- Main Context -->
+        <ScrollView x:Name="MainScrollView">
+            <Grid Padding="10">
+                <!-- Two rows: header and exercises list -->
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <!-- Blue Header with program details (gesture attached in code-behind) -->
+                <Grid x:Name="BlueHeader" Grid.Row="0" BackgroundColor="DarkBlue" Padding="10">
+                    <!-- (Removed the XAML gesture recognizer for pan here) -->
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Program Details on the left -->
+                    <VerticalStackLayout Grid.Column="0" Spacing="2">
+                        <Label Text="{Binding TodayProgram.Split}"
+                               FontSize="24"
+                               FontAttributes="Bold"
+                               TextColor="White" />
+                        <Label Text="{Binding TodayProgram.Notes}"
+                               FontSize="16"
+                               TextColor="White" />
+                    </VerticalStackLayout>
+
+                    <!-- Date icon (with tap to open DatePicker) on the right -->
+                    <HorizontalStackLayout Grid.Column="1" Spacing="10" VerticalOptions="Center">
+                        <Border BackgroundColor="White"
+                                Padding="5"
+                                WidthRequest="60"
+                                HeightRequest="60"
+                                VerticalOptions="Center">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="10"/>
+                            </Border.StrokeShape>
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding OpenDatePickerCommand}" />
+                            </Border.GestureRecognizers>
+                            <VerticalStackLayout Spacing="0"
+                                                 HorizontalOptions="Center"
+                                                 VerticalOptions="Center">
+                                <Label Text="{Binding SelectedDate, StringFormat='{0:ddd}'}"
+                                       FontSize="16"
+                                       TextColor="DarkBlue"
+                                       HorizontalTextAlignment="Center" />
+                                <Label Text="{Binding SelectedDate, StringFormat='{0:dd}'}"
+                                       FontSize="16"
+                                       TextColor="DarkBlue"
+                                       HorizontalTextAlignment="Center" />
+                            </VerticalStackLayout>
+                        </Border>
+                    </HorizontalStackLayout>
+                </Grid>
+
+                <!-- Hidden DatePicker (used when the date icon is tapped) -->
+                <DatePicker x:Name="HiddenDatePicker"
+                            Grid.Row="0"
+                            IsVisible="False"
+                            Format="d"
+                            TextColor="Transparent"
+                            Unfocused="HiddenDatePicker_Unfocused"
+                            Date="{Binding SelectedDate}" />
+
+                <!-- Exercises List -->
+                <CollectionView Grid.Row="1" ItemsSource="{Binding TodayExerciseSets}">
+                    <CollectionView.ItemsLayout>
+                        <GridItemsLayout Orientation="Vertical" Span="1"/>
+                    </CollectionView.ItemsLayout>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Border Padding="10" Margin="5" StrokeThickness="1" Stroke="LightGray">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="10"/>
+                                </Border.StrokeShape>
+                                <HorizontalStackLayout Spacing="15">
+                                    <!-- Exercise Image -->
+                                    <Border Padding="0" StrokeThickness="0">
+                                        <Border.StrokeShape>
+                                            <RoundRectangle CornerRadius="10"/>
+                                        </Border.StrokeShape>
+                                        <Image Source="{Binding Exercise.Icon}"
+                                               HeightRequest="80"
+                                               WidthRequest="80"
+                                               Aspect="AspectFill"/>
+                                    </Border>
+                                    <!-- Exercise Details -->
+                                    <VerticalStackLayout>
+                                        <Label Text="{Binding Exercise.Name}" FontSize="18" FontAttributes="Bold"/>
+                                        <Label Text="{Binding Exercise.MuscleGroup, StringFormat='Muscle Group: {0}'}" FontSize="16" TextColor="Gray"/>
+                                        <Label Text="{Binding SetType, StringFormat='Type: {0}'}" FontSize="16"/>
+                                        <Label Text="{Binding Sets, StringFormat='Sets: {0}'}" FontSize="16"/>
+                                        <Label Text="{Binding RepsDisplay}" FontSize="16"/>
+                                    </VerticalStackLayout>
+                                </HorizontalStackLayout>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </Grid>
+        </ScrollView>
+
+        <!-- Search Overlay (initially hidden) -->
+        <Grid x:Name="SearchOverlay" 
+              BackgroundColor="#CCFFFFFF" 
+              IsVisible="False"
+              VerticalOptions="Start"
+              Padding="10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <!-- Top bar with hamburger icon and search bar -->
+            <HorizontalStackLayout>
+                <!-- Hamburger Icon -->
+                <Image Source="hamburger.png" WidthRequest="30" HeightRequest="30">
+                    <Image.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding OpenFlyoutCommand}" />
+                    </Image.GestureRecognizers>
+                </Image>
+                <!-- Search Bar -->
+                <SearchBar x:Name="ProgramSearchBar" 
+                           Placeholder="Search Programs" 
+                           HorizontalOptions="FillAndExpand"
+                           TextChanged="ProgramSearchBar_TextChanged"
+                           SearchButtonPressed="ProgramSearchBar_SearchButtonPressed" />
+                <!-- Cancel Button -->
+                <Button Text="Cancel" Clicked="CancelSearch_Clicked" />
+            </HorizontalStackLayout>
+            <!-- Live search results -->
+            <CollectionView x:Name="SearchResultsCollection" Grid.Row="1"
+                            ItemsSource="{Binding FilteredPrograms}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Frame Padding="10" Margin="5">
+                            <StackLayout>
+                                <Label Text="{Binding Split}" FontAttributes="Bold" />
+                                <Label Text="{Binding Notes}" />
+                            </StackLayout>
+                        </Frame>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </Grid>
+    </Grid>
+</ContentPage>
