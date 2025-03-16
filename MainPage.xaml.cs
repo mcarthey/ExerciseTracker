@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Windows.Input;
 using ExerciseTracker.Models;
 using System.Linq;
@@ -41,23 +42,24 @@ public partial class MainPage : ContentPage
         InitializeComponent();
         LoadData();
         AssignDefaultIcons();
-        BindingContext = this;
 
-        // Command to open the DatePicker
+        // 1) Define commands
         OpenDatePickerCommand = new Command(() =>
         {
             HiddenDatePicker.IsVisible = true;
+            HiddenDatePicker.InputTransparent = false; // so we can tap/focus
             Dispatcher.Dispatch(() => HiddenDatePicker.Focus());
         });
 
-        // Command to open the Shell flyout via the hamburger icon
         OpenFlyoutCommand = new Command(() =>
         {
             Shell.Current.FlyoutIsPresented = true;
         });
 
-        // Attach PanGestureRecognizer directly to BlueHeader in code-behind.
-        // This ensures that the gesture is registered even if the ScrollView intercepts some gestures.
+        // 2) Now set the BindingContext once everything is ready
+        BindingContext = this;
+
+        // 3) Attach any gesture recognizers after
         var panGesture = new PanGestureRecognizer();
         panGesture.PanUpdated += OnHeaderPanUpdated;
         BlueHeader.GestureRecognizers.Clear();
@@ -138,6 +140,7 @@ public partial class MainPage : ContentPage
     {
         // Hide the DatePicker after selection or dismissal
         HiddenDatePicker.IsVisible = false;
+        HiddenDatePicker.InputTransparent = true; // block taps again
     }
 
     public void AssignDefaultIcons()
