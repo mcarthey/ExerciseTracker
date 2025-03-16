@@ -67,6 +67,9 @@
                         </VerticalStackLayout>
 
                         <!-- Hidden DatePicker -->
+                        <!-- Some platforms (especially Android) will show the default “EditText” underline whenever 
+                            the picker is focused at least once – even if later set invisible. Shrink to a 1×1 block and hide in the corner 
+                            (setting Opacity="0", etc.), effectively removing any possibility for that highlight to appear in the main UI -->
                         <DatePicker x:Name="HiddenDatePicker"
                                     WidthRequest="1"
                                     HeightRequest="1"
