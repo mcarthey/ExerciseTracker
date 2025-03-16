@@ -89,6 +89,25 @@ public partial class MainPage : ContentPage
         }
     }
 
+    private void OnOverlaySwipedUp(object sender, SwipedEventArgs e)
+    {
+        // Confirm it's an upward swipe
+        if (e.Direction == SwipeDirection.Up)
+        {
+            SearchOverlay.IsVisible = false;
+            ProgramSearchBar.Text = string.Empty; // or any cleanup you want
+        }
+    }
+
+
+    private void OnOverlayTapped(object sender, TappedEventArgs e)
+    {
+        // User tapped the semi-transparent background, so hide the overlay
+        SearchOverlay.IsVisible = false;
+        ProgramSearchBar.Text = string.Empty;
+    }
+
+
     private void ShowSearchOverlay()
     {
         SearchOverlay.IsVisible = true;

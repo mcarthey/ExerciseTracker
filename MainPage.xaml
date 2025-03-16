@@ -8,15 +8,13 @@
 
     <Grid>
 
-        <!-- Define two rows: 
-             1) Auto height for the header
-             2) * to fill the rest of the space for the exercises list -->
+        <!-- 1) Two rows: header in row 0, exercises in row 1 -->
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <!-- BLUE HEADER (Row 0) -->
+        <!-- 2) BLUE HEADER (Row 0) -->
         <Grid x:Name="BlueHeader"
               Grid.Row="0"
               BackgroundColor="DarkBlue"
@@ -38,9 +36,7 @@
             </VerticalStackLayout>
 
             <!-- Date icon on the right (tap to open HiddenDatePicker) -->
-            <HorizontalStackLayout Grid.Column="1"
-                                   Spacing="10"
-                                   VerticalOptions="Center">
+            <HorizontalStackLayout Grid.Column="1" Spacing="10" VerticalOptions="Center">
                 <Border BackgroundColor="White"
                         Padding="5"
                         WidthRequest="60"
@@ -55,41 +51,41 @@
                         <TapGestureRecognizer Command="{Binding OpenDatePickerCommand}" />
                     </Border.GestureRecognizers>
 
-                    <!-- The SINGLE child of this Border is a Grid that holds 
-                           both your labels and the hidden DatePicker. -->
+                    <!-- Single child: a Grid holding labels + hidden DatePicker -->
                     <Grid>
                         <VerticalStackLayout Spacing="0"
-                                         HorizontalOptions="Center"
-                                         VerticalOptions="Center">
+                                             HorizontalOptions="Center"
+                                             VerticalOptions="Center">
                             <Label Text="{Binding SelectedDate, StringFormat='{0:ddd}'}"
-                               FontSize="16"
-                               TextColor="DarkBlue"
-                               HorizontalTextAlignment="Center" />
+                                   FontSize="16"
+                                   TextColor="DarkBlue"
+                                   HorizontalTextAlignment="Center" />
                             <Label Text="{Binding SelectedDate, StringFormat='{0:dd}'}"
-                               FontSize="16"
-                               TextColor="DarkBlue"
-                               HorizontalTextAlignment="Center" />
+                                   FontSize="16"
+                                   TextColor="DarkBlue"
+                                   HorizontalTextAlignment="Center" />
                         </VerticalStackLayout>
 
                         <!-- Hidden DatePicker -->
                         <DatePicker x:Name="HiddenDatePicker"
-                                    IsVisible="False"
+                                    WidthRequest="1"
+                                    HeightRequest="1"
+                                    Opacity="0"
                                     InputTransparent="True"
+                                    IsVisible="False"
                                     Format="d"
                                     TextColor="Transparent"
                                     Unfocused="HiddenDatePicker_Unfocused"
                                     Date="{Binding SelectedDate}"
-                                    VerticalOptions="Center"
-                                    HorizontalOptions="Center"/>
+                                    VerticalOptions="Start"
+                                    HorizontalOptions="Start" />
                     </Grid>
                 </Border>
             </HorizontalStackLayout>
         </Grid>
 
-        <!-- EXERCISES LIST (Row 1) 
-             The CollectionView scrolls by default, so no ScrollView is needed. -->
-        <CollectionView Grid.Row="1"
-                        ItemsSource="{Binding TodayExerciseSets}">
+        <!-- 3) EXERCISES LIST (Row 1) -->
+        <CollectionView Grid.Row="1" ItemsSource="{Binding TodayExerciseSets}">
             <CollectionView.ItemsLayout>
                 <GridItemsLayout Orientation="Vertical" Span="1"/>
             </CollectionView.ItemsLayout>
@@ -134,64 +130,84 @@
             </CollectionView.ItemTemplate>
         </CollectionView>
 
-        <!-- SEARCH OVERLAY (initially hidden).
-             Span both rows so it overlays the entire page when visible. -->
+        <!-- 4) FULL-SCREEN SEARCH OVERLAY (RowSpan="2") -->
         <Grid x:Name="SearchOverlay"
               Grid.RowSpan="2"
-              BackgroundColor="#CCFFFFFF"
+              BackgroundColor="#CC000000"
               IsVisible="False"
-              VerticalOptions="Start"
-              Padding="10">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
-            </Grid.RowDefinitions>
+              VerticalOptions="FillAndExpand"
+              HorizontalOptions="FillAndExpand">
 
-            <!-- Top bar with hamburger icon and search bar -->
-            <HorizontalStackLayout>
-                <!-- Hamburger Icon -->
-                <Image Source="hamburger.png"
-                       WidthRequest="30"
-                       HeightRequest="30">
-                    <Image.GestureRecognizers>
-                        <TapGestureRecognizer Command="{Binding OpenFlyoutCommand}" />
-                    </Image.GestureRecognizers>
-                </Image>
+            <!-- Tapping anywhere on dark background => close overlay -->
+            <Grid.GestureRecognizers>
+                <TapGestureRecognizer Tapped="OnOverlayTapped" />
+            </Grid.GestureRecognizers>
 
-                <!-- Search Bar -->
-                <SearchBar x:Name="ProgramSearchBar"
-                           Placeholder="Search Programs"
-                           HorizontalOptions="FillAndExpand"
-                           TextChanged="ProgramSearchBar_TextChanged"
-                           SearchButtonPressed="ProgramSearchBar_SearchButtonPressed" />
+            <!-- Center a white "popup" Border inside the overlay -->
+            <Border BackgroundColor="White"
+                    Padding="10"
+                    StrokeThickness="1"
+                    Stroke="Gray"
+                    VerticalOptions="Start"
+                    HorizontalOptions="Center"
+                    WidthRequest="350">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="10" />
+                </Border.StrokeShape>
 
-                <!-- Cancel Button -->
-                <Button Text="Cancel" Clicked="CancelSearch_Clicked" />
-            </HorizontalStackLayout>
+                <!-- Taps inside this border do NOT bubble up => overlay stays open -->
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer />
+                </Border.GestureRecognizers>
 
-            <!-- Live search results (Row 1) -->
-            <CollectionView x:Name="SearchResultsCollection"
-                            Grid.Row="1"
-                            ItemsSource="{Binding FilteredPrograms}">
-                <CollectionView.ItemTemplate>
-                    <DataTemplate>
-                        <!-- Replace Frame with Border -->
-                        <Border Padding="10"
-                                Margin="5"
-                                StrokeThickness="1"
-                                Stroke="LightGray">
-                            <Border.StrokeShape>
-                                <RoundRectangle CornerRadius="10"/>
-                            </Border.StrokeShape>
-                            <VerticalStackLayout>
-                                <Label Text="{Binding Split}"
-                                       FontAttributes="Bold" />
-                                <Label Text="{Binding Notes}" />
-                            </VerticalStackLayout>
-                        </Border>
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
+                <!-- Search UI -->
+                <VerticalStackLayout Spacing="10">
+                    <HorizontalStackLayout>
+                        <!-- Hamburger Icon -->
+                        <Image Source="hamburger.png"
+                               WidthRequest="30" 
+                               HeightRequest="30">
+                            <Image.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding OpenFlyoutCommand}" />
+                            </Image.GestureRecognizers>
+                        </Image>
+
+                        <!-- Search Bar -->
+                        <SearchBar x:Name="ProgramSearchBar"
+                                   Placeholder="Search Programs"
+                                   HorizontalOptions="FillAndExpand"
+                                   TextChanged="ProgramSearchBar_TextChanged"
+                                   SearchButtonPressed="ProgramSearchBar_SearchButtonPressed" />
+
+                        <!-- Cancel Button -->
+                        <Button Text="Cancel"
+                                Clicked="CancelSearch_Clicked" />
+                    </HorizontalStackLayout>
+
+                    <!-- Search results -->
+                    <CollectionView x:Name="SearchResultsCollection"
+                                    ItemsSource="{Binding FilteredPrograms}">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Border Padding="10"
+                                        Margin="5"
+                                        StrokeThickness="1"
+                                        Stroke="LightGray">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="10"/>
+                                    </Border.StrokeShape>
+                                    <VerticalStackLayout>
+                                        <Label Text="{Binding Split}"
+                                               FontAttributes="Bold" />
+                                        <Label Text="{Binding Notes}" />
+                                    </VerticalStackLayout>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </VerticalStackLayout>
+            </Border>
         </Grid>
+
     </Grid>
 </ContentPage>
